@@ -9,5 +9,3 @@ wss.on("connection", function connection(ws: WebSocket, req) {
     gameManager.addUser(ws);
     ws.on("disconnect", () => gameManager.removeUser(ws));
 });
-
-console.log("done");

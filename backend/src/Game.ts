@@ -8,6 +8,7 @@ export class Game {
     public board: Chess;
     public moves: string[];
     public startTime: Date;
+    private moveCount: number;
 
     constructor(player1: WebSocket, player2: WebSocket) {
         this.player1 = player1;
@@ -15,6 +16,7 @@ export class Game {
         this.board = new Chess();
         this.moves = [];
         this.startTime = new Date();
+        this.moveCount = 0;
         this.player1.send(
             JSON.stringify({
                 type: INIT_GAME,
@@ -41,10 +43,8 @@ export class Game {
         }
     ) {
         // Check Turn
-        if (this.board.moves.length % 2 === 0 && socket !== this.player1)
-            return;
-        if (this.board.moves.length % 2 === 1 && socket !== this.player2)
-            return;
+        if (this.moveCount % 2 === 0 && socket !== this.player1) return;
+        if (this.moveCount % 2 === 1 && socket !== this.player2) return;
 
         // Validate Move and make the move
         try {
@@ -58,7 +58,7 @@ export class Game {
 
         // Check for Game over
         if (this.board.isGameOver()) {
-            this.player1.emit(
+            this.player1.send(
                 JSON.stringify({
                     type: GAME_OVER,
                     payload: {
@@ -69,20 +69,22 @@ export class Game {
         }
 
         // Send the move to the other player
-        if (this.board.moves.length % 2 === 0) {
-            this.player2.emit(
+        if (this.moveCount % 2 === 0) {
+            this.player2.send(
                 JSON.stringify({
                     type: MOVE,
                     payload: move,
                 })
             );
         } else {
-            this.player1.emit(
+            this.player1.send(
                 JSON.stringify({
                     type: MOVE,
                     payload: move,
                 })
             );
         }
+
+        this.moveCount++;
     }
 }
